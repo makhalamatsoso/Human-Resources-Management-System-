@@ -1,0 +1,65 @@
+const express = require('express');
+const Vehicle = require('../models/vehicle');  // Import Vehicle model
+const router = express.Router();
+
+// Create a new vehicle
+router.post('/', async (req, res) => {
+  try {
+    const vehicle = new Vehicle(req.body);
+    await vehicle.save();
+    res.status(201).send(vehicle);
+  } catch (err) {
+    res.status(400).send({ error: 'Error creating vehicle', message: err.message });
+  }
+});
+
+// Get all vehicles
+router.get('/', async (req, res) => {
+  try {
+    const vehicles = await Vehicle.find();
+    res.status(200).send(vehicles);
+  } catch (err) {
+    res.status(500).send({ error: 'Error fetching vehicles', message: err.message });
+  }
+});
+
+// Get a single vehicle by VIN
+router.get('/:vin', async (req, res) => {
+  try {
+    const vehicle = await Vehicle.findOne({ VIN: req.params.vin });
+    if (!vehicle) {
+      return res.status(404).send({ message: 'Vehicle not found' });
+    }
+    res.status(200).send(vehicle);
+  } catch (err) {
+    res.status(500).send({ error: 'Error fetching vehicle', message: err.message });
+  }
+});
+
+// Update a vehicle
+router.put('/:vin', async (req, res) => {
+  try {
+    const updatedVehicle = await Vehicle.findOneAndUpdate({ VIN: req.params.vin }, req.body, { new: true });
+    if (!updatedVehicle) {
+      return res.status(404).send({ message: 'Vehicle not found' });
+    }
+    res.status(200).send(updatedVehicle);
+  } catch (err) {
+    res.status(500).send({ error: 'Error updating vehicle', message: err.message });
+  }
+});
+
+// Delete a vehicle
+router.delete('/:vin', async (req, res) => {
+  try {
+    const deletedVehicle = await Vehicle.findOneAndDelete({ VIN: req.params.vin });
+    if (!deletedVehicle) {
+      return res.status(404).send({ message: 'Vehicle not found' });
+    }
+    res.status(200).send({ message: 'Vehicle deleted', vehicle: deletedVehicle });
+  } catch (err) {
+    res.status(500).send({ error: 'Error deleting vehicle', message: err.message });
+  }
+});
+
+module.exports = router;
